@@ -15,5 +15,3 @@ sqlResult <- function(sql){
   return(result)
 }
 
-
-#hahah
