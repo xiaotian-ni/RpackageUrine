@@ -6,6 +6,7 @@ build_ri <- function(male,female,upper.ri = 0.975){
   ri = merge(male_ri,female_ri,by = 'GeneSymbol',all = T)
   rownames(ri) = ri$GeneSymbol
   ri = ri[,-1]
+  ri = round(ri,2)
   return(ri)
 }
 
