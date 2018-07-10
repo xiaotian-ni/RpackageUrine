@@ -1,10 +1,11 @@
-# protein.data = read.table('~/Desktop/learnFunction/PHU00001_protein_data.txt',header = T,row.names = 1)
-# rownames(protein.data) = protein.data$GeneSymbol
-# protein.data = protein.data[,-1]
-# 
 # load('~/Desktop/learnFunction/normal_male_female.R')
 # ri = build_ri(male,female)
-# clinical.info = read.table('~/Desktop/learnFunction/PHU00001_clinical_info.txt',header = T,fileEncoding = 'GBK')
+# data("A166")
+# data("A166_clinical")
+# x = calc_outliers(protein.data,clinical.info,ri)$result_info
+# rownames(x) = x$GeneSymbol
+# x = x[,-1]
+# y = annotate(x)
 
 calc_outliers <- function(protein.data,clinical.info,ri,imputed_value = 0,ri.freq.cutoff = 0.25){
   if(length(clinical.info$Gender[!duplicated(clinical.info$Gender)]) > 1){
@@ -13,9 +14,9 @@ calc_outliers <- function(protein.data,clinical.info,ri,imputed_value = 0,ri.fre
   }
   gender = clinical.info$Gender[1]
   if(gender == '男'){
-    ri_4_calc = data.frame(GeneSymbol = rownames(ri),ri = ri$ri.male)
+    ri_4_calc = data.frame(GeneSymbol = rownames(ri),RI = ri$ri.male)
   }else if(gender == '女'){
-    ri_4_calc = data.frame(GeneSymbol = rownames(ri),ri = ri$ri.female)
+    ri_4_calc = data.frame(GeneSymbol = rownames(ri),RI = ri$ri.female)
   }else{
     cat('Error: Gender error')
     return(0)
@@ -27,17 +28,17 @@ calc_outliers <- function(protein.data,clinical.info,ri,imputed_value = 0,ri.fre
   # ==== calc diff matrix ====
   diff_matrix = merged_data[,-1:-2]
   rownames(diff_matrix) = merged_data$GeneSymbol
-  diff_matrix = diff_matrix - merged_data$ri
+  diff_matrix = diff_matrix - merged_data$RI
   diff_matrix[diff_matrix < 0] = 0
   diff_matrix[diff_matrix > 0] = 1
 
-  outliers_of_each_sample = data.frame(Sample = colnames(diff_matrix),ri.count = apply(diff_matrix,2,sum))
+  outliers_of_each_sample = data.frame(Sample = colnames(diff_matrix),RI.count = apply(diff_matrix,2,sum))
 
-  outlier_freq = data.frame(GeneSymbol = rownames(diff_matrix),ri.freq = apply(diff_matrix,1,sum))
+  outlier_freq = data.frame(GeneSymbol = rownames(diff_matrix),RI.freq = apply(diff_matrix,1,sum))
   outlier_freq_table = merge(outlier_freq,merged_data,by = 'GeneSymbol',all = T)
   outlier_freq_table$GeneSymbol = as.character(outlier_freq_table$GeneSymbol)
 
-  x = outliers_of_each_sample$ri.count
+  x = outliers_of_each_sample$RI.count
   x = c('Outlier.count','','',x)
   result_info = rbind(x,outlier_freq_table)
 
