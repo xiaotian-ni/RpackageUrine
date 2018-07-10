@@ -1,7 +1,7 @@
 # protein.data = read.table('~/Desktop/learnFunction/PHU00001_protein_data.txt',header = T,row.names = 1)
 # rownames(protein.data) = protein.data$GeneSymbol
 # protein.data = protein.data[,-1]
-#
+# 
 # load('~/Desktop/learnFunction/normal_male_female.R')
 # ri = build_ri(male,female)
 # clinical.info = read.table('~/Desktop/learnFunction/PHU00001_clinical_info.txt',header = T,fileEncoding = 'GBK')
@@ -41,7 +41,7 @@ calc_outliers <- function(protein.data,clinical.info,ri,imputed_value = 0,ri.fre
   x = c('Outlier.count','','',x)
   result_info = rbind(x,outlier_freq_table)
 
-  x = clinical.info$Date
+  x = as.vector(clinical.info$Date)
   x = c('Date','','',x)
   result_info = rbind(x,result_info)
 
