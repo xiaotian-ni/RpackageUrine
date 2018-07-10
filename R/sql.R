@@ -15,4 +15,3 @@ sqlResult <- function(sql){
   return(result)
 }
 
-
