@@ -6,6 +6,16 @@ calc_outliers <- function(protein.data,clinical.info,ri,imputed_value = 0,ri.fre
     clinical.info = clinical.info[order(clinical.info[,which(colnames(clinical.info) == sort.by)]),]
   }
   
+  expnames.info = clinical.info$Firmiana_ID
+  cat('Clinical info:',length(expnames.info),'experiments.\n')
+  expnames.protein = colnames(protein.data)
+  cat('Protein data:',length(expnames.protein),'experiments.\n')
+  expnames.intersected = intersect(expnames.info,expnames.protein)
+  
+  protein.data = protein.data[,colnames(protein.data) %in% expnames.intersected]
+  clinical.info = clinical.info[clinical.info$Firmiana_ID %in% expnames.intersected,]
+  cat('Exp kept:',length(expnames.intersected),'.\n')
+  
   # ==== sort data by clinical.info ====
   
   protein.data = protein.data[,sort(colnames(protein.data))[rank(clinical.info$Firmiana_ID)]]
@@ -14,7 +24,8 @@ calc_outliers <- function(protein.data,clinical.info,ri,imputed_value = 0,ri.fre
     cat('Error: There are two genders.')
     return(0)
   }
-  gender = clinical.info$Gender[1]
+  gender = as.character(clinical.info$Gender[1])
+  cat('Gender:',gender,'\n')
   if(gender == '男'){
     ri_4_calc = data.frame(GeneSymbol = rownames(ri),RI = ri$ri.male)
   }else if(gender == '女'){
