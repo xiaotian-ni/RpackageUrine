@@ -45,7 +45,10 @@ calc_outliers <- function(protein.data,clinical.info,ri,imputed_value = 0,ri.fre
   x = c('','','Outlier.count',x)
   result_info = rbind(x,result_info)
   
-  proteins_detected = data.frame(Sample = colnames(diff_matrix),proteins.detected = apply(protein.data,2,return(length(x[x>imputed_value]))))
+  proteins_detected = data.frame(Sample = colnames(diff_matrix),proteins.detected = apply(protein.data,2,function(x){return(length(x[x>imputed_value]))}))
+  x = proteins_detected$proteins.detected
+  x = c('','','Proteins.detected',x)
+  result_info = rbind(x,result_info)
   
   if(length(col.annos) == 0){
     cat('No column annotation detected.')
