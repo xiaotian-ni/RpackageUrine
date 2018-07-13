@@ -1,5 +1,4 @@
 getTopProteins <- function(data,gps.cutoff = 700){
-  gps.cutoff = 700
   data[is.na(data)]=0
   protein_count=data.frame(colnames(data),protein_count=apply(data,2,function(x){return(length(x[x>0]))}))
   sample=row.names(protein_count[which(protein_count$protein_count>gps.cutoff),])
