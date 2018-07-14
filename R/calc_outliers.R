@@ -1,18 +1,31 @@
-# load('~/Desktop/learnFunction/normal_male_female.R')
-# ri = build_ri(male,female)
-# data("A166")
-# data("A166_clinical")
-# x = calc_outliers(protein.data,clinical.info,ri)$result_info
-# rownames(x) = x$GeneSymbol
-# x = x[,-1]
-# y = annotate(x)
-
-calc_outliers <- function(protein.data,clinical.info,ri,imputed_value = 0,ri.freq.cutoff = 0.25){
+calc_outliers <- function(protein.data,clinical.info,ri,imputed_value = 0,ri.freq.cutoff = 0.25,col.annos = c(),sort.by = 'none'){
+  # ==== sort clinical.info ====
+  if(sort.by == 'none'){
+    cat('Sort by "default".')
+  }else{
+    clinical.info = clinical.info[order(clinical.info[,which(colnames(clinical.info) == sort.by)]),]
+  }
+  
+  expnames.info = clinical.info$Firmiana_ID
+  cat('Clinical info:',length(expnames.info),'experiments.\n')
+  expnames.protein = colnames(protein.data)
+  cat('Protein data:',length(expnames.protein),'experiments.\n')
+  expnames.intersected = intersect(expnames.info,expnames.protein)
+  
+  protein.data = protein.data[,colnames(protein.data) %in% expnames.intersected]
+  clinical.info = clinical.info[clinical.info$Firmiana_ID %in% expnames.intersected,]
+  cat('Exp kept:',length(expnames.intersected),'.\n')
+  
+  # ==== sort data by clinical.info ====
+  
+  protein.data = protein.data[,sort(colnames(protein.data))[rank(clinical.info$Firmiana_ID)]]
+  
   if(length(clinical.info$Gender[!duplicated(clinical.info$Gender)]) > 1){
     cat('Error: There are two genders.')
     return(0)
   }
-  gender = clinical.info$Gender[1]
+  gender = as.character(clinical.info$Gender[1])
+  cat('Gender:',gender,'\n')
   if(gender == '男'){
     ri_4_calc = data.frame(GeneSymbol = rownames(ri),RI = ri$ri.male)
   }else if(gender == '女'){
@@ -37,14 +50,26 @@ calc_outliers <- function(protein.data,clinical.info,ri,imputed_value = 0,ri.fre
   outlier_freq = data.frame(GeneSymbol = rownames(diff_matrix),RI.freq = apply(diff_matrix,1,sum))
   outlier_freq_table = merge(outlier_freq,merged_data,by = 'GeneSymbol',all = T)
   outlier_freq_table$GeneSymbol = as.character(outlier_freq_table$GeneSymbol)
+  result_info = outlier_freq_table
 
   x = outliers_of_each_sample$RI.count
   x = c('Outlier.count','','',x)
-  result_info = rbind(x,outlier_freq_table)
-
-  x = as.vector(clinical.info$Date)
-  x = c('Date','','',x)
   result_info = rbind(x,result_info)
+  
+  proteins_detected = data.frame(Sample = colnames(diff_matrix),proteins.detected = apply(protein.data,2,function(x){return(length(x[x>imputed_value]))}))
+  x = proteins_detected$proteins.detected
+  x = c('Proteins.detected','','',x)
+  result_info = rbind(x,result_info)
+  
+  if(length(col.annos) == 0){
+    cat('No column annotation detected.')
+  }else{
+    for(col.anno in col.annos){
+      x = as.vector(clinical.info[,which(colnames(clinical.info) == col.anno)])
+      x = c(col.anno,'','',x)
+      result_info = rbind(x,result_info)
+    }
+  }
 
   result = list(diff_matrix = diff_matrix,
                 outliers_of_each_sample = outliers_of_each_sample,
