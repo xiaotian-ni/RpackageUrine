@@ -1,5 +1,5 @@
 filterUS <- function(targetDIR,u=0,s=0,us=2,GPs.count.cutoff = 0,type){
-  setwd(targetDIR)
+  # setwd(targetDIR)
   filelist = list.files(targetDIR)
 
   if(type == 'ifot'){
@@ -17,7 +17,7 @@ filterUS <- function(targetDIR,u=0,s=0,us=2,GPs.count.cutoff = 0,type){
     if(substr(file,nchar(file)-3,nchar(file)) == '.txt'){
       totalFiles = c(totalFiles,file)
 
-      data = read.delim(file,header = T)
+      data = read.delim(paste0(targetDIR,'/',file),header = T)
       tmp_data = data[,c(1,4,5,6,index)]
 
       # tmp_data[,2] = upep, tmp_data[,3] = spep, tmp_data[,4] = uspep
@@ -35,7 +35,7 @@ filterUS <- function(targetDIR,u=0,s=0,us=2,GPs.count.cutoff = 0,type){
     if(substr(file,nchar(file)-3,nchar(file)) == '.txt'){
       cat(file,'\n')
 
-      data = read.delim(file,header = T)
+      data = read.delim(paste0(targetDIR,'/',file),header = T)
       tmp_data = data[,c(1,4,5,6,index)]
       # tmp_data[,2] = upep, tmp_data[,3] = spep, tmp_data[,4] = uspep
       tmp_data = tmp_data[which(tmp_data[,2] >= u & tmp_data[,3] >= s & tmp_data[,4] >= us),]
@@ -45,10 +45,16 @@ filterUS <- function(targetDIR,u=0,s=0,us=2,GPs.count.cutoff = 0,type){
       colnames(data_result)[ncol(data_result)] = substr(file,1,nchar(file)-8)
     }
   }
+  rownames(data_result) = data_result$GeneSymbol
+  data_result = data_result[,-1]
+  count = apply(data_result,1,function(x){
+    return(length(x[!is.na(x) & x > 0]))
+    })
+  data_result = data_result[which(count > 0),]
   count = apply(data_result,2,function(x){return(length(x[!is.na(x) & x > 0]))})
   result = data_result[,which(count > GPs.count.cutoff)]
-  cat('Total files: ',length(totalFiles),'\n')
-  cat('Total GPs: ',length(totalProteins),'\n')
+  cat('Total files: ',ncol(result),'/',length(totalFiles),'\n')
+  cat('Total GPs: ',nrow(result),'\n')
   return(result)
 }
 
