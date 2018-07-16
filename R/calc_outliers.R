@@ -57,22 +57,17 @@ calc_outliers <- function(protein.data,clinical.info,ri,imputed_value = 0,ri.fre
   outlier_freq_table$genesymbol = as.character(outlier_freq_table$genesymbol)
   result_info = outlier_freq_table
 
-<<<<<<< HEAD
+
   x = outliers_of_each_sample$ri.count
   x = c('outlier.count','','',x)
-=======
-  x = outliers_of_each_sample$RI.count
-  x = c('Outlier.count','','',x)
->>>>>>> 3dd6b7968e1209e69684a23d4938d1981ca3a365
+
   result_info = rbind(x,result_info)
   
   proteins_detected = data.frame(Sample = colnames(diff_matrix),proteins.detected = apply(protein.data,2,function(x){return(length(x[x>imputed_value]))}))
   x = proteins_detected$proteins.detected
-<<<<<<< HEAD
+
   x = c('proteins.detected','','',x)
-=======
-  x = c('Proteins.detected','','',x)
->>>>>>> 3dd6b7968e1209e69684a23d4938d1981ca3a365
+
   result_info = rbind(x,result_info)
   
   if(length(col.annos) == 0){
