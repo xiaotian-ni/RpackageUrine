@@ -1,9 +1,11 @@
 calc_outliers <- function(protein.data,clinical.info,ri,imputed_value = 0,ri.freq.cutoff = 0.25,col.annos = c(),sort.by = 'none'){
+
   # ==== convert to lower letter ====
   colnames(clinical.info) = tolower(colnames(clinical.info))
   clinical.info$firmiana_id = tolower(clinical.info$firmiana_id)
   
   colnames(protein.data) = tolower(colnames(protein.data))
+
   # ==== sort clinical.info ====
   if(sort.by == 'none'){
     cat('Sort by "default".')
@@ -11,6 +13,7 @@ calc_outliers <- function(protein.data,clinical.info,ri,imputed_value = 0,ri.fre
     clinical.info = clinical.info[order(clinical.info[,which(colnames(clinical.info) == sort.by)]),]
   }
   
+
   expnames.info = clinical.info$firmiana_id
   cat('Clinical info:',length(expnames.info),'experiments.\n')
   expnames.protein = colnames(protein.data)
@@ -18,11 +21,13 @@ calc_outliers <- function(protein.data,clinical.info,ri,imputed_value = 0,ri.fre
   expnames.intersected = intersect(expnames.info,expnames.protein)
   
   protein.data = protein.data[,colnames(protein.data) %in% expnames.intersected]
+
   clinical.info = clinical.info[clinical.info$firmiana_id %in% expnames.intersected,]
   cat('Exp kept:',length(expnames.intersected),'.\n')
   
   # ==== sort data by clinical.info ====
   
+
   protein.data = protein.data[,sort(colnames(protein.data))[rank(clinical.info$firmiana_id)]]
   
   if(length(clinical.info$gender[!duplicated(clinical.info$gender)]) > 1){
@@ -70,6 +75,7 @@ calc_outliers <- function(protein.data,clinical.info,ri,imputed_value = 0,ri.fre
 
   result_info = rbind(x,result_info)
   
+
   if(length(col.annos) == 0){
     cat('No column annotation detected.')
   }else{
