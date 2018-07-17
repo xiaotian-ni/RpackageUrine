@@ -1,4 +1,5 @@
 annotate <- function(protein.data,gene.description = T,tissue.specificity = T){
+  # test
   protein.data = data.frame(genesymbol = rownames(protein.data),protein.data)
   data("annotationData")
   annotated.data = data.frame(genesymbol = anno$GeneSymbol)
