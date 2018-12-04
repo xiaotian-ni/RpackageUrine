@@ -1,8 +1,7 @@
-calc_outliers <- function(protein.data,clinical.info,ri,imputed_value = 0,ri.freq.cutoff = 0.25,col.annos = c(),sort.by = 'none'){
+calc_outliers <- function(protein.data,clinical.info,ri,sri,imputed_value = 0,ri.freq.cutoff = 0.25,col.annos = c(),sort.by = 'none'){
   # ==== convert to lower letter ====
   colnames(clinical.info) = tolower(colnames(clinical.info))
   clinical.info$firmiana_id = tolower(clinical.info$firmiana_id)
-  
   colnames(protein.data) = tolower(colnames(protein.data))
   # ==== sort clinical.info ====
   if(sort.by == 'none'){
@@ -33,42 +32,65 @@ calc_outliers <- function(protein.data,clinical.info,ri,imputed_value = 0,ri.fre
   cat('Gender:',gender,'\n')
   if(gender == '男'|gender == 'm'){
     ri_4_calc = data.frame(genesymbol = rownames(ri),ri = ri$ri.male)
+    sri_4_calc = data.frame(genesymbol = rownames(sri),sri = sri$ri.male)
   }else if(gender == '女'|gender == 'f'){
     ri_4_calc = data.frame(genesymbol = rownames(ri),ri = ri$ri.female)
+    sri_4_calc = data.frame(genesymbol = rownames(sri),sri = sri$ri.female)
   }else{
     cat('Error: Gender error')
     return(0)
   }
   p_data = data.frame(genesymbol = rownames(protein.data),protein.data)
-  merged_data = merge(ri_4_calc,p_data,by = 'genesymbol',all.y = T)
+  
+  #SRI
+  merged_data = merge(sri_4_calc,p_data,by = 'genesymbol',all.y = T)
   merged_data[is.na(merged_data)] = imputed_value
-
   # ==== calc diff matrix ====
   diff_matrix = merged_data[,-1:-2]
   rownames(diff_matrix) = merged_data$genesymbol
-  diff_matrix = diff_matrix - merged_data$ri
-  diff_matrix[diff_matrix < 0] = 0
-  diff_matrix[diff_matrix > 0] = 1
-
-  outliers_of_each_sample = data.frame(Sample = colnames(diff_matrix),ri.count = apply(diff_matrix,2,sum))
-
-  outlier_freq = data.frame(genesymbol = rownames(diff_matrix),ri.freq = apply(diff_matrix,1,sum))
-  outlier_freq_table = merge(outlier_freq,merged_data,by = 'genesymbol',all = T)
-  outlier_freq_table$genesymbol = as.character(outlier_freq_table$genesymbol)
-  result_info = outlier_freq_table
-
-
-  x = outliers_of_each_sample$ri.count
-  x = c('outlier.count','','',x)
-
-  result_info = rbind(x,result_info)
+  SRI_diff_matrix = diff_matrix - merged_data$sri
+  SRI_diff_matrix[SRI_diff_matrix < 0] = 0
+  SRI_diff_matrix[SRI_diff_matrix > 0] = 1
+  SRI_outliers_of_each_sample = data.frame(Sample = colnames(SRI_diff_matrix),sri.count = apply(SRI_diff_matrix,2,sum))
+  SRI_outlier_freq = data.frame(genesymbol = rownames(SRI_diff_matrix),sri.freq = apply(SRI_diff_matrix,1,sum))
+  merged_data = merge(SRI_outlier_freq,merged_data,by = 'genesymbol',all = T)
+  merged_data$genesymbol = as.character(merged_data$genesymbol)
+  # result_info = SRI_outlier_freq
+  # ==== calc diff matrix ====
   
-  proteins_detected = data.frame(Sample = colnames(diff_matrix),proteins.detected = apply(protein.data,2,function(x){return(length(x[x>imputed_value]))}))
-  x = proteins_detected$proteins.detected
-
-  x = c('proteins.detected','','',x)
-
-  result_info = rbind(x,result_info)
+  #RI
+  merged_data = merge(ri_4_calc,merged_data,by = 'genesymbol',all.y = T)
+  merged_data[is.na(merged_data)] = imputed_value
+  # ==== calc diff matrix ====
+  diff_matrix = merged_data[,-1:-4]
+  rownames(diff_matrix) = merged_data$genesymbol
+  RI_diff_matrix = diff_matrix - merged_data$ri
+  RI_diff_matrix[RI_diff_matrix < 0] = 0
+  RI_diff_matrix[RI_diff_matrix > 0] = 1
+  RI_outliers_of_each_sample = data.frame(Sample = colnames(RI_diff_matrix),ri.count = apply(RI_diff_matrix,2,sum))
+  RI_outlier_freq = data.frame(genesymbol = rownames(RI_diff_matrix),ri.freq = apply(RI_diff_matrix,1,sum))
+  RI_outlier_freq_table = merge(RI_outlier_freq,merged_data,by = 'genesymbol',all = T)
+  RI_outlier_freq_table$genesymbol = as.character(RI_outlier_freq_table$genesymbol)
+  result_info = RI_outlier_freq_table
+  # ==== calc diff matrix ====
+  
+  
+  # ====  add ROW====
+  x=apply(protein.data,2,function(x){return(length(x[x>imputed_value]))})
+  y=RI_outliers_of_each_sample$ri.count
+  z=SRI_outliers_of_each_sample$sri.count
+  proteins.detected = c('proteins.detected','','','','',x)
+  RI.outlier.count= c('RI.outlier.count','','','','',y)
+  RI.outlier.freq=c('RI.outlier.freq','','','','',round(y/x,3))
+  SRI.outlier.count= c('SRI.outlier.count','','','','',z)
+  SRI.outlier.freq=c('SRI.outlier.freq','','','','',round(z/x,3))
+  
+  
+  result_info = rbind(SRI.outlier.freq,result_info)
+  result_info = rbind(SRI.outlier.count,result_info)
+  result_info = rbind(RI.outlier.freq,result_info)
+  result_info = rbind(RI.outlier.count,result_info)
+  result_info = rbind(proteins.detected,result_info)
   
   if(length(col.annos) == 0){
     cat('No column annotation detected.')
@@ -79,10 +101,10 @@ calc_outliers <- function(protein.data,clinical.info,ri,imputed_value = 0,ri.fre
       result_info = rbind(x,result_info)
     }
   }
-
+  result_info=data.frame(result_info,row.names = 1)
   result = list(diff_matrix = diff_matrix,
-                outliers_of_each_sample = outliers_of_each_sample,
-                outlier_freq_table = outlier_freq_table,
+                RI_outliers_of_each_sample = RI_outliers_of_each_sample,
+                SRI_outliers_of_each_sample = SRI_outliers_of_each_sample,
                 result_info = result_info)
   return(result)
 }
