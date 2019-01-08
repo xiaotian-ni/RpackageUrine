@@ -1,4 +1,3 @@
-
 calc_outliers <- function(protein.data,clinical.info,ri,sri,imputed_value = 0,ri.freq.cutoff = 0.25,col.annos = c(),sort.by = 'none'){
   # ==== convert to lower letter ====
   colnames(clinical.info) = tolower(colnames(clinical.info))
