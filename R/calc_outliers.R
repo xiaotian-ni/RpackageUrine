@@ -1,3 +1,4 @@
+
 calc_outliers <- function(protein.data,clinical.info,ri,sri,imputed_value = 0,ri.freq.cutoff = 0.25,col.annos = c(),sort.by = 'none'){
   # ==== convert to lower letter ====
   colnames(clinical.info) = tolower(colnames(clinical.info))
@@ -30,10 +31,10 @@ calc_outliers <- function(protein.data,clinical.info,ri,sri,imputed_value = 0,ri
   }
   gender = as.character(clinical.info$gender[1])
   cat('Gender:',gender,'\n')
-  if(gender == '男'|gender == 'm'){
+  if(gender == '男'|gender == 'm'|gender == 'M'){
     ri_4_calc = data.frame(genesymbol = rownames(ri),ri = ri$ri.male)
     sri_4_calc = data.frame(genesymbol = rownames(sri),sri = sri$ri.male)
-  }else if(gender == '女'|gender == 'f'){
+  }else if(gender == '女'|gender == 'f'|gender == 'F'){
     ri_4_calc = data.frame(genesymbol = rownames(ri),ri = ri$ri.female)
     sri_4_calc = data.frame(genesymbol = rownames(sri),sri = sri$ri.female)
   }else{
